@@ -9,7 +9,9 @@ public class ProbLoader : MonoBehaviour {
 
     public UnityEngine.UI.Text banner;
     public GameObject doorPrefab;
+    List<Probability> probabilities;
 
+    //basic struct holding each line in the file
     public struct Probability
     {
         public Probability(bool h, bool n, bool s, float p) { hot = h; noisy = n; safe = s; pct = p; }
@@ -19,43 +21,43 @@ public class ProbLoader : MonoBehaviour {
         public float pct;
     }
 
-    List<Probability> Probabilities;
-
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
+    
+    //This is where the probability calculations occur
 	void Update () {
 		if (Input.GetKeyDown(KeyCode.O))
         {
+            //get file and contents
             string path = EditorUtility.OpenFilePanel("Open Probabilities File", "", "txt");
             string file = ReadFile(path);
             if (file.Length > 0)
             {
-                //print(file);
-                banner.text = file;
-                //clean it up and make it useable
+                banner.text = file;//display file contents
 
+                //clean it up and make it useable
                 string[] split = file.Split(new char[] { '\n', '\t', ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
 
-                Probabilities = new List<Probability>();
+                //reset the list
+                probabilities = new List<Probability>();
 
+
+                //formatting is 4 values per line, first line is irrelevant for values
                 for (int i = 4; i < split.Length; i+=4)
                 {
-                    //print(split[i] + split[i + 1] + split[i + 2] + split[i + 3]);
+                    //grab the percent value
                     float val;
                     float.TryParse(split[i + 3], out val);
 
-                    Probabilities.Add(new Probability(//create and assign new probability
-                        split[i].Equals("Y") ? true : false,
+                    //create and assign new probability
+                    //at this point i = line number, offset to that value will get the "column"
+                    probabilities.Add(new Probability(
+                        split[i].Equals("Y") ? true : false,//ternary comparison to convert Y/N to true/false
                         split[i+1].Equals("Y") ? true : false,
                         split[i+2].Equals("Y") ? true : false,
                         val
                         ));
                 }
                 
+                //destroy all doors from last file
                 for (int i = 0; i < transform.childCount; i++)
                 {
                     Destroy(transform.GetChild(i).gameObject);
