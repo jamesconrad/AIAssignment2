@@ -59,31 +59,37 @@ public class ProbLoader : MonoBehaviour {
                 
                 //destroy all doors from last file
                 for (int i = 0; i < transform.childCount; i++)
-                {
                     Destroy(transform.GetChild(i).gameObject);
-                }
 
                 for (int i = 0; i < 20; i++)
                 {
+                    //spawn a new door, with all 3 effects active on it, in a circle facing the origin
                     float angle = i * Mathf.PI * 2f / 20;
                     Vector3 pos = new Vector3(Mathf.Cos(angle) * 8.5f, 1, Mathf.Sin(angle) * 8.5f);
                     Quaternion rot = new Quaternion();
                     rot.SetLookRotation(pos - new Vector3(0, 1, 0));
                     Door newDoor = Instantiate(doorPrefab, pos, rot, transform).GetComponentInChildren<Door>();
 
+                    //generate a random value, unity default has Random.value inclusivley between 0 and 1
                     float ranval = Random.value;
-                    for (int j = 0; j < Probabilities.Count; j++)
+
+                    //for each line in the file
+                    for (int j = 0; j < probabilities.Count; j++)
                     {
-                        ranval -= Probabilities[j].pct;
+                        //subtract its probability from our value
+                        ranval -= probabilities[j].pct;
+
+                        //if below 0
                         if (ranval <= 0)
                         {
-                            if (!Probabilities[j].hot)
+                            //destroy the effects on the door
+                            if (!probabilities[j].hot)
                                 Destroy(newDoor.effectHot);
-                            if (!Probabilities[j].noisy)
+                            if (!probabilities[j].noisy)
                                 Destroy(newDoor.effectNoisy);
-                            if (!Probabilities[j].safe)
+                            if (!probabilities[j].safe)
                                 Destroy(newDoor.effectSafe);
-                            break;
+                            break;//exit this line and proceed to next
                         }
                     }
                 }
@@ -91,6 +97,7 @@ public class ProbLoader : MonoBehaviour {
         }
 	}
 
+    //open, close file, and return contents
     string ReadFile(string path)
     {
         StreamReader reader = new StreamReader(path);
