@@ -4,14 +4,19 @@ using UnityEngine;
 
 public class Door : MonoBehaviour {
     public int swingDir = 1;
-    public float swingSpeed = 0.8f;
+    public float swingSpeed = 9.0f;
     public float openLimit = 90f;
     public Transform hinge;
     public int currentState;
     private DoorSwingState state = new Shut();
+    public Transform model;
     private bool inputSpamming = false;
     private int prevstate;
     private float baseRot;
+
+    public GameObject effectHot;
+    public GameObject effectNoisy;
+    public GameObject effectSafe;
 
     bool active = false;
 
@@ -37,18 +42,11 @@ public class Door : MonoBehaviour {
         currentState = state.state();
         if (active && Input.GetKeyDown(KeyCode.E))
         {
-            if (!inputSpamming)
-            {
-                inputSpamming = true;
                 if (currentState % 2 == 1)
-                    state = new SwingingShut(swingDir, swingSpeed, openLimit, hinge, transform, baseRot);
+                    state = new SwingingShut(swingDir, swingSpeed, openLimit, hinge, model, baseRot);
                 else
-                    state = new SwingingOpen(swingDir, swingSpeed, openLimit, hinge, transform, baseRot);
-            }
-            //ik right hand to handle
+                    state = new SwingingOpen(swingDir, swingSpeed, openLimit, hinge, model, baseRot);
         }
-        else
-            inputSpamming = false;
 
         if (currentState <= 2 || active)
         {
@@ -59,10 +57,10 @@ public class Door : MonoBehaviour {
                 switch (nextstate)
                 {
                     case 1:
-                        state = new SwingingOpen(swingDir, swingSpeed, openLimit, hinge, transform, baseRot);
+                        state = new SwingingOpen(swingDir, swingSpeed, openLimit, hinge, model, baseRot);
                         break;
                     case 2:
-                        state = new SwingingShut(swingDir, swingSpeed, openLimit, hinge, transform, baseRot);
+                        state = new SwingingShut(swingDir, swingSpeed, openLimit, hinge, model, baseRot);
                         break;
                     case 3:
                         state = new Open();
@@ -78,6 +76,17 @@ public class Door : MonoBehaviour {
         }
     }
 
+    public void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+            active = true;
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Player"))
+            active = false;
+    }
 
     private class DoorSwingState
     {

@@ -8,6 +8,7 @@ using System.IO;
 public class ProbLoader : MonoBehaviour {
 
     public UnityEngine.UI.Text banner;
+    public GameObject doorPrefab;
 
     public struct Probability
     {
@@ -46,15 +47,44 @@ public class ProbLoader : MonoBehaviour {
                     //print(split[i] + split[i + 1] + split[i + 2] + split[i + 3]);
                     float val;
                     float.TryParse(split[i + 3], out val);
+
                     Probabilities.Add(new Probability(//create and assign new probability
-                        split[i].Equals('Y') ? true : false,
-                        split[i+1].Equals('Y') ? true : false,
-                        split[i+2].Equals('Y') ? true : false,
+                        split[i].Equals("Y") ? true : false,
+                        split[i+1].Equals("Y") ? true : false,
+                        split[i+2].Equals("Y") ? true : false,
                         val
                         ));
                 }
+                
+                for (int i = 0; i < transform.childCount; i++)
+                {
+                    Destroy(transform.GetChild(i).gameObject);
+                }
 
-                //reinit doors
+                for (int i = 0; i < 20; i++)
+                {
+                    float angle = i * Mathf.PI * 2f / 20;
+                    Vector3 pos = new Vector3(Mathf.Cos(angle) * 8.5f, 1, Mathf.Sin(angle) * 8.5f);
+                    Quaternion rot = new Quaternion();
+                    rot.SetLookRotation(pos - new Vector3(0, 1, 0));
+                    Door newDoor = Instantiate(doorPrefab, pos, rot, transform).GetComponentInChildren<Door>();
+
+                    float ranval = Random.value;
+                    for (int j = 0; j < Probabilities.Count; j++)
+                    {
+                        ranval -= Probabilities[j].pct;
+                        if (ranval <= 0)
+                        {
+                            if (!Probabilities[j].hot)
+                                Destroy(newDoor.effectHot);
+                            if (!Probabilities[j].noisy)
+                                Destroy(newDoor.effectNoisy);
+                            if (!Probabilities[j].safe)
+                                Destroy(newDoor.effectSafe);
+                            break;
+                        }
+                    }
+                }
             }
         }
 	}
